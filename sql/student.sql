@@ -1,4 +1,5 @@
 -- 1. Tạo bảng Hệ Đào Tạo
+USE StudentManagement;
 CREATE TABLE HeDaoTao (
     ma_he_dao_tao VARCHAR(20) PRIMARY KEY,
     ten_he_dao_tao NVARCHAR(100)
