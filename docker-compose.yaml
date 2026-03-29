@@ -1,0 +1,40 @@
+services:
+  # --- MASTER (3308) ---
+  mysql-master:
+    image: mysql:8.0
+    container_name: mysql-master
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Dripmaster69!
+      MYSQL_DATABASE: StudentManagement
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d # Tự động chạy script tạo user/bảng
+    command: ["mysqld", "--server-id=1", "--log-bin=mysql-bin"]
+
+  # --- SLAVE 1 (3309) ---
+  mysql-slave:
+    image: mysql:8.0
+    container_name: mysql-slave
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Dripmaster69!
+    ports:
+      - "3309:3306"
+    depends_on:
+      - mysql-master
+    command: ["mysqld", "--server-id=2"]
+
+  # --- SLAVE 2 (3310) ---
+  mysql-slave-2:
+    image: mysql:8.0
+    container_name: mysql-slave-2
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Dripmaster69!
+    ports:
+      - "3310:3306"
+    depends_on:
+      - mysql-master
+    command: ["mysqld", "--server-id=3"]

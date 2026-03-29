@@ -1,0 +1,40 @@
+# HƯỚNG DẪN THIẾT LẬP MASTER-SLAVE REPLICATION (DOCKER)
+
+Dự án này mô phỏng hệ thống Database phân tán gồm 1 Master và 2 Slaves cho quản lý sinh viên.
+
+# Bước 1: Khởi động hệ thống
+Mở Terminal/PowerShell tại thư mục lưu file yaml và chạy:
+docker compose down 
+docker compose up -d
+
+Bước 2: Lấy thông số đồng bộ từ Master
+Tại Terminal, gõ lệnh sau để lấy "tọa độ" dữ liệu:
+docker exec -it mysql-master mysql -u root -pDripmaster69! -e "SHOW MASTER STATUS;"
+Ghi lại giá trị của File (thường là mysql-bin.000001) và Position (ví dụ: 157).
+
+Bước 3: Cấu hình cho các Slave (Thực hiện cho cả 2 Slave)
+mở powershell:
+Đối với Slave 1:
+	Vào MySQL Slave 1:
+	docker exec -it mysql-slave mysql -u root -pDripmaster69!
+	STOP SLAVE;
+	CHANGE MASTER TO 
+  	MASTER_HOST='mysql-master',
+  	MASTER_USER='repl',
+  	MASTER_PASSWORD='slavepassword',
+  	MASTER_LOG_FILE='mysql-bin.00000x', -- Thay File vào đây
+  	MASTER_LOG_POS=xxx,                  -- Thay Position vào đây
+  	GET_MASTER_PUBLIC_KEY=1;
+	START SLAVE;
+	SHOW SLAVE STATUS\G; -- Kiểm tra Slave_IO_Running và Slave_SQL_Running là "Yes" (có 2 cái này là ổn rồi)
+
+Đối với Slave 2: Làm y hệt các bước trên nhưng thay bằng lệnh vào Slave 2:
+docker exec -it mysql-slave-2 mysql -u root -pDripmaster69!
+
+Bước 4: Kiểm tra đồng bộ(update, tạo bảng hay gì cũng được)
+Tại Master (Cổng 3308), hãy thử tạo một bảng mới:
+        mở powercell, chuyển môi trường sang <sql: docker exec -it mysql-master mysql -u root -pDripmaster69!
+	USE StudentManagement;
+	CREATE TABLE TestCheck (id INT PRIMARY KEY, val VARCHAR(50));
+	INSERT INTO TestCheck VALUES (1, 'Hello from Master');
+Sau đó mở cmd vào các Slave (Cổng 3309, 3310), use student management, gõ SELECT * FROM TestCheck; để thấy kết quả.
